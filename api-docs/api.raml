@@ -1,0 +1,191 @@
+#%RAML 0.8
+title: dashboard-api
+baseUri: http://localhost:8080/dashboard-api
+version: 1.0
+
+/repos:
+  get:
+    description: list all repos under given project comming from Stash
+    queryParameters:
+      projectName:
+        description: given project name
+        required: true
+        type: string
+        minLength: 2
+        example: "DMC"
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              [
+                {
+                  "name": "em-foundation"
+                },
+                {
+                  "name": "ansible-common"
+                },
+                {
+                  "name": "aws-common"
+                }
+              ]
+      403:
+        description: return if the credential to access Stash is incorrect
+        body:
+          application/json:
+            example: |
+              {"message": "Can't access Stash"}
+      404:
+        description: return if the given project code can't be found on Stash
+        body:
+          application/json:
+            example: |
+              {"message": "Can't find any repos."}
+/sources:
+  description: manuplate all sources on the instance
+  get:
+    description: display all sources on the instance
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              [
+                {
+                  "name": "em-foundation"
+                },
+                {
+                  "name": "aws-common"
+                }
+              ]
+  post:
+    description: git clone selected repos and trigger index job
+    body:
+      application/json:
+        example: |
+          {
+            "repos": [
+              {
+                "name": "DMC/em-foundation"
+              },
+              {
+                "name": "DMC/aws-common"
+              }
+            ]
+          }
+    responses:
+      200:
+        description: return all successfully added repos
+        body:
+          application/json:
+            example: |
+              [
+                {
+                  "name": "em-foundation"
+                },
+                {
+                  "name": "ansible-common"
+                },
+                {
+                  "name": "aws-common"
+                }
+              ]
+      500:
+        description: any errors occurs when adding new repos
+        body:
+          application/json:
+            example: |
+              {"message": "Can't add the repo."}
+  delete:
+    description: remove selected sources and update the index
+    body:
+      application/json:
+        example: |
+          {
+            "sources": [
+              {
+                "name": "em-foundation"
+              },
+              {
+                "name": "aws-common"
+              }
+            ]
+          }
+    responses:
+      200:
+        description: removed the selected sources successfully
+        body:
+          application/json:
+            example: |
+              {"message": "Sources have been removed scucessfully"}
+      500:
+        description: any errors occured when removing sources
+        body:
+          application/json:
+            example: |
+              {"message": "Can't remove the sources"}
+/credential:
+  description: manage credential which is used to access Stash
+  get:
+    responses:
+      200:
+        description: get username of the credential
+        body:
+          application/json:
+            example: |
+              {"username": "S123456"}
+      404:
+        description: credential is not found
+        body:
+          application/json:
+            example: |
+              {"message": "No credential is found"}
+  post:
+    description: save the new credential
+    body:
+      application/json:
+        example: |
+          {
+            "username": "S123456",
+            "password": "123456"
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {"message": "Add credential successfully"}
+      500:
+        body:
+          application/json:
+            example: |
+              {"message": "Can't save the credential"}
+/cronjob:
+  description: schedule a cron-job to refresh all indecies
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {"cronexp": "12312312"}
+  post:
+    description: configure a new cronjob
+    body:
+      application/json:
+        example: |
+          {
+            "cronexp": "123456"
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {"message": "new cron expression has been deployed"}
+      400:
+        description: bad cron expression
+        body:
+          application/json:
+            example: |
+              {"message": "Invalid expression"}
